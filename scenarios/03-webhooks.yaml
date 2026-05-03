@@ -1,0 +1,68 @@
+name: webhook-signing
+description: Signature verify, replay rejection, and tamper detection must be identical across SDKs.
+
+setup:
+  fixedSecret: whsec_compliance_known_value
+  fixedTimestamp: 1714680000
+  fixedBody: '{"id":"evt_compliance","type":"call.ended","data":{"room":"support","duration":42}}'
+  expectedSig: 8a4f1e2c0d3b5a6e7f08192a3b4c5d6e7f8091a2b3c4d5e6f70819a2b3c4d5e6
+
+steps:
+  - name: verify-known-good-signature
+    sdk: webhooks.verify
+    args:
+      body: ${setup.fixedBody}
+      header: t=${setup.fixedTimestamp},v1=${setup.expectedSig}
+      secret: ${setup.fixedSecret}
+      tolerance: 999999999
+    expect:
+      returns: true
+
+  - name: reject-tampered-body
+    sdk: webhooks.verify
+    args:
+      body: '{"id":"evt_compliance","type":"call.ended","data":{"room":"support","duration":99999}}'
+      header: t=${setup.fixedTimestamp},v1=${setup.expectedSig}
+      secret: ${setup.fixedSecret}
+      tolerance: 999999999
+    expect:
+      throws: SignatureMismatchError
+
+  - name: reject-tampered-signature
+    sdk: webhooks.verify
+    args:
+      body: ${setup.fixedBody}
+      header: t=${setup.fixedTimestamp},v1=0000000000000000000000000000000000000000000000000000000000000000
+      secret: ${setup.fixedSecret}
+      tolerance: 999999999
+    expect:
+      throws: SignatureMismatchError
+
+  - name: reject-wrong-secret
+    sdk: webhooks.verify
+    args:
+      body: ${setup.fixedBody}
+      header: t=${setup.fixedTimestamp},v1=${setup.expectedSig}
+      secret: whsec_wrong
+      tolerance: 999999999
+    expect:
+      throws: SignatureMismatchError
+
+  - name: reject-stale-timestamp
+    sdk: webhooks.verify
+    args:
+      body: ${setup.fixedBody}
+      header: t=${setup.fixedTimestamp},v1=${setup.expectedSig}
+      secret: ${setup.fixedSecret}
+      tolerance: 300
+    expect:
+      throws: TimestampStaleError
+
+  - name: reject-malformed-header
+    sdk: webhooks.verify
+    args:
+      body: ${setup.fixedBody}
+      header: not-a-valid-header
+      secret: ${setup.fixedSecret}
+    expect:
+      throws: MalformedSignatureError

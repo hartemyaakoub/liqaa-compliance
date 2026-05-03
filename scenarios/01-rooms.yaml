@@ -1,0 +1,61 @@
+name: rooms-lifecycle
+description: Create, fetch, list, end. The basic room CRUD must work identically.
+
+steps:
+  - name: create-room
+    sdk: rooms.create
+    args:
+      name: compliance_${random}
+      maxParticipants: 4
+    expect:
+      status: 201
+      body.has: id
+      body.name: compliance_${stash.random}
+      body.maxParticipants: 4
+      body.status: open
+    stash:
+      roomId: ${body.id}
+
+  - name: get-room
+    sdk: rooms.get
+    args:
+      id: ${stash.roomId}
+    expect:
+      status: 200
+      body.id: ${stash.roomId}
+      body.status: open
+
+  - name: list-rooms-contains-our-room
+    sdk: rooms.list
+    args:
+      limit: 50
+    expect:
+      status: 200
+      body.data.length.gte: 1
+      body.has: pagination.cursor
+      body.data.some.id: ${stash.roomId}
+
+  - name: end-room
+    sdk: rooms.end
+    args:
+      id: ${stash.roomId}
+    expect:
+      status: 200
+      body.status: ended
+
+  - name: get-ended-room
+    sdk: rooms.get
+    args:
+      id: ${stash.roomId}
+    expect:
+      status: 200
+      body.status: ended
+
+  - name: get-nonexistent-room-throws
+    sdk: rooms.get
+    args:
+      id: rm_does_not_exist
+    expect:
+      throws: NotFoundError
+      error.code: room_not_found
+      error.status: 404

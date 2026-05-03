@@ -1,0 +1,54 @@
+name: token-issuance
+description: All four SDKs must mint identical JWTs from identical inputs.
+
+steps:
+  - name: issue-token
+    sdk: tokens.issue
+    args:
+      user: agent@compliance.test
+      rooms: [support]
+      ttl: 60
+      permissions:
+        canPublish: true
+        canSubscribe: true
+        canPublishData: true
+    expect:
+      status: 200
+      body.has: jwt
+      body.has: expiresAt
+      body.expiresAt.gte: ${now + 50}
+      body.expiresAt.lte: ${now + 70}
+
+  - name: decode-token-claims-match
+    sdk: tokens.decode
+    args:
+      jwt: ${stash.jwt}
+    expect:
+      claims.sub: agent@compliance.test
+      claims.rooms: [support]
+      claims.iss: liqaa.io
+      claims.has: exp
+      claims.has: iat
+      claims.exp.gt: ${claims.iat}
+
+  - name: ttl-too-large-rejected
+    sdk: tokens.issue
+    args:
+      user: agent@compliance.test
+      rooms: [support]
+      ttl: 999999
+    expect:
+      throws: ValidationError
+      error.code: ttl_too_large
+      error.status: 400
+
+  - name: empty-rooms-rejected
+    sdk: tokens.issue
+    args:
+      user: agent@compliance.test
+      rooms: []
+      ttl: 60
+    expect:
+      throws: ValidationError
+      error.code: rooms_required
+      error.status: 400
