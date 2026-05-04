@@ -59,7 +59,7 @@ jobs:
         python: ['3.10', '3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with: { python-version: '${{ matrix.python }}', cache: 'pip', cache-dependency-path: runners/python/requirements.txt }
       - run: pip install -r requirements.txt
         working-directory: runners/python
