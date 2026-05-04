@@ -38,22 +38,22 @@ The OpenAPI spec ([`liqaa-openapi`](https://github.com/hartemyaakoub/liqaa-opena
 
 ```
 .
-├─ scenarios/
-│  ├─ 01-rooms.yaml          · declarative scenario steps
-│  ├─ 02-tokens.yaml
-│  ├─ 03-webhooks.yaml
-│  ├─ 04-idempotency.yaml
-│  └─ 05-error-shapes.yaml
-│
-├─ runners/
-│  ├─ js/                    · Node 18/20/22 → liqaa-js
-│  ├─ php/                   · PHP 8.2/8.3/8.4 → liqaa-php
-│  ├─ python/                · Python 3.10/3.11/3.12/3.13 → liqaa-python
-│  └─ go/                    · Go 1.21/1.22/1.23 → liqaa-go
-│
-└─ scripts/
-   ├─ run-all.sh             · one command runs the matrix locally
-   └─ generate-matrix.mjs    · emits GitHub Actions matrix from scenarios
+ scenarios/
+ 01-rooms.yaml · declarative scenario steps
+ 02-tokens.yaml
+ 03-webhooks.yaml
+ 04-idempotency.yaml
+ 05-error-shapes.yaml
+
+ runners/
+ js/ · Node 18/20/22 → liqaa-js
+ php/ · PHP 8.2/8.3/8.4 → liqaa-php
+ python/ · Python 3.10/3.11/3.12/3.13 → liqaa-python
+ go/ · Go 1.21/1.22/1.23 → liqaa-go
+
+ scripts/
+ run-all.sh · one command runs the matrix locally
+ generate-matrix.mjs · emits GitHub Actions matrix from scenarios
 ```
 
 Each runner is a thin shim: it reads a scenario YAML, calls the SDK methods, asserts the responses. The shims share zero code — that's the point. If any runner cheats, real behaviour will diverge from what's tested.
@@ -63,7 +63,7 @@ Each runner is a thin shim: it reads a scenario YAML, calls the SDK methods, ass
 ```bash
 git clone https://github.com/hartemyaakoub/liqaa-compliance
 cd liqaa-compliance
-export LIQAA_TEST_SK=sk_test_…   # get one at https://liqaa.io/console (test mode)
+export LIQAA_TEST_SK=sk_test_… # get one at https://liqaa.io/console (test mode)
 ./scripts/run-all.sh
 ```
 
